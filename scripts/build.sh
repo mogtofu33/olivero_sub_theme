@@ -2,14 +2,20 @@
 #
 # Generate and copy Olivero css and fonts to our theme for override.
 
-_my_sub_theme="{1:-my_sub_theme}"
+_my_sub_theme=${1:-"olivero_sub_theme"}
+
+if [[ ! -d web/core/themes/olivero ]];
+then
+  echo -e "[ERROR] Can not find Olivero theme, are you at the root of Drupal?"
+  exit 1
+fi
 
 if [[ ! -d web/core/node_modules ]];
 then
   yarn --cwd web/core install
 fi
 
-cp web/core/themes/olivero/css/base/variables.pcss.css web/core/themes/olivero/css/base/variables.pcss.css.bak
+cp -r web/core/themes/olivero/css/ web/core/themes/olivero/css.orig/
 cp -f web/themes/custom/$_my_sub_theme/css/variables.pcss.css web/core/themes/olivero/css/base/variables.pcss.css
 
 # Build the theme
@@ -21,4 +27,5 @@ cp -r web/core/themes/olivero/fonts web/themes/custom/$_my_sub_theme/fonts
 rm -rf web/themes/custom/$_my_sub_theme/css/theme && rm -f web/themes/custom/$_my_sub_theme/css/**/*.pcss.css
 
 # Set back Olivero variable file.
-cp web/core/themes/olivero/css/base/variables.pcss.css.bak web/core/themes/olivero/css/base/variables.pcss.css
+rm -rf web/core/themes/olivero/css/
+mv web/core/themes/olivero/css.orig/ web/core/themes/olivero/css/
