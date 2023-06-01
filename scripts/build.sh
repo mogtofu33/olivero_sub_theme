@@ -22,7 +22,7 @@ cp -f web/themes/custom/$_my_sub_theme/css/variables.pcss.css web/core/themes/ol
 yarn --cwd web/core build:css
 
 rm -rf web/themes/custom/$_my_sub_theme/css/base/*.css web/themes/custom/$_my_sub_theme/css/components web/themes/custom/$_my_sub_theme/css/layout
-cp -r web/core/themes/olivero/css/ web/themes/custom/$_my_sub_theme/
+cp -r web/core/themes/olivero/css web/themes/custom/$_my_sub_theme/
 cp -r web/core/themes/olivero/fonts web/themes/custom/$_my_sub_theme/fonts
 rm -rf web/themes/custom/$_my_sub_theme/css/theme && rm -f web/themes/custom/$_my_sub_theme/css/**/*.pcss.css
 
