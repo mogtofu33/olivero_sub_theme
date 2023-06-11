@@ -3,8 +3,8 @@ type: theme
 base theme: olivero
 description: Olivero sub theme with minimal overrides, custom js and templates.
 package: Custom
-core: 8.x
-core_version_requirement: ^8 || ^9
+core: 9.x
+core_version_requirement: ^9 || ^10
 libraries:
   - olivero_sub_theme/global-styling
 # Keep main Olivero regions to ease update.
