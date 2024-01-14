@@ -11,13 +11,14 @@ See full article:
 
 ## Quick HowTo
 
-Copy this theme in your Drupal theme folder and rename it, ie `olivero_sub_theme` > `_MY_THEME_NAME_`.
+Copy this theme in your Drupal theme folder `web/themes/custom` and rename it, ie `olivero_sub_theme` > `_MY_THEME_NAME_`.
 
-Rename files in this folder from `olivero_sub_theme` > `_MY_THEME_NAME_`.
+Rename all files in this folder from `olivero_sub_theme` > `_MY_THEME_NAME_`.
 
 Edit `_MY_THEME_NAME_.info.yml` with your informations.
 
-Edit `_MY_THEME_NAME_.theme` to change `olivero_sub_theme_css_alter` > `MY_THEME_NAME_css_alter`.
+Edit `_MY_THEME_NAME_.theme` to change `olivero_sub_theme_css_alter` > `MY_THEME_NAME_css_alter` and change the theme
+name `olivero_sub_theme` with your name.
 
 Run:
 
