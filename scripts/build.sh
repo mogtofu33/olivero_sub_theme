@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 #
-# Generate and copy Olivero css and fonts to our theme for override.
+# Generate and copy Drupal Olivero css and fonts to our theme for minimal override.
+#
+# @see https://developpeur-drupal.com/en/article/update-create-drupal-10-olivero-sub-theme
+#
+# You can customize your theme by editing:
+# - css/variables.pcss.css
+# - css/theme.css
+# - js/theme.js
+# Then run this script each time to compile your changes.
 
 set -eu
 
@@ -8,59 +16,66 @@ __red=$'\e[1;31m'
 __grn=$'\e[1;32m'
 __blu=$'\e[0;34m'
 
-_my_sub_theme=${1:-"olivero_sub_theme"}
+get_abs_path() {
+  echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+}
 
 _DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+_my_sub_theme="$(basename $(dirname "$_DIR"))"
 
 _drupal_core="web/core"
 _drupal_core_olivero="web/core/themes/olivero"
 _my_sub_theme_path="web/themes/custom/${_my_sub_theme}"
 
+_error=0
+
+if [ ! -d "${_drupal_core}" ]; then
+  _drupal_core="$_DIR/../../../../../${_drupal_core}"
+  [ ! -d "${_drupal_core}" ] && echo -e "${__red}[ERROR]\e[0m Drupal core missing: '$(get_abs_path "$_drupal_core")'!" && _error=1
+fi
+
 if [ ! -d "${_drupal_core_olivero}" ]; then
   _drupal_core_olivero="$_DIR/../../../../core/themes/olivero"
-  if [ ! -d "${_drupal_core_olivero}" ]; then
-    echo -e "${__red}[ERROR]\e[0m Can not find Olivero theme, are you at the root of Drupal? Looking for '${_drupal_core_olivero}'"
-    exit 1
-  fi
+  [ ! -d "${_drupal_core_olivero}" ] && echo -e "${__red}[ERROR]\e[0m Olivero theme missing: '$(get_abs_path "$_drupal_core_olivero")'" && _error=1
 fi
 
 if [ ! -d "${_my_sub_theme_path}" ]; then
   _my_sub_theme_path="$_DIR/../../../../themes/custom/${_my_sub_theme}"
-  if [ ! -d "${_my_sub_theme_path}" ]; then
-    echo -e "${__red}[ERROR]\e[0m Can not find Sub theme, did you create/copy in '${_my_sub_theme_path}'?"
+  [ ! -d "${_my_sub_theme_path}" ] && echo -e "${__red}[ERROR]\e[0m Sub theme missing, did you create/copy this subtheme in '$(get_abs_path "$_my_sub_theme_path")'?" && _error=1
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo -e "${__red}[ERROR]\e[0m Node is required for this script!"
+  _error=1
+fi
+
+_pkg_manager='yarn'
+
+if ! command -v yarn >/dev/null 2>&1; then
+  echo -e "${__blu}[Notice]\e[0m Yarn not found, fallback to NPM."
+  _pkg_manager='npm'
+  if ! command -v npm >/dev/null 2>&1; then
+    echo -e "${__red}[ERROR]\e[0m NPM is required to build the theme, please install to use this script."
     exit 1
   fi
 fi
 
-if [ ! -d "${_drupal_core}" ]; then
-  _drupal_core="$_DIR/../../../../../${_drupal_core}"
-  if [ ! -d "${_drupal_core}" ]; then
-    echo -e "${__red}[ERROR]\e[0m Can not find Drupal core in '${_drupal_core}', please run this script from Drupal root folder."
-    exit 1
-  fi
-fi
+[ "${_error}" == 1 ] && exit 1
 
-_drupal_core="$(
-  cd "$(dirname "$_drupal_core")"
-  pwd
-)/$(basename "$_drupal_core")"
-_drupal_core_olivero="$(
-  cd "$(dirname "$_drupal_core_olivero")"
-  pwd
-)/$(basename "$_drupal_core_olivero")"
-_my_sub_theme_path="$(
-  cd "$(dirname "$_my_sub_theme_path")"
-  pwd
-)/$(basename "$_my_sub_theme_path")"
+echo -e "${__blu}[Notice]\e[0m Start building the theme..."
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo -e "${__red}[ERROR]\e[0m Can not find NPM, please install to use this script."
-  exit 1
-fi
+_drupal_core="$(get_abs_path "$_drupal_core")"
+_drupal_core_olivero="$(get_abs_path "$_drupal_core_olivero")"
+_my_sub_theme_path="$(get_abs_path "$_my_sub_theme_path")"
 
 if [ ! -d "${_drupal_core}/node_modules" ]; then
-  echo -e "${__blu}[Notice]\e[0m One time install of Drupal packages with NPM..."
-  cd "${_drupal_core}" && npm install
+  echo -e "${__blu}[Notice]\e[0m One time install of Drupal packages with ${_pkg_manager}..."
+  if [ ${_pkg_manager} == 'yarn' ]; then
+    yarn --cwd "${_drupal_core}" install
+  else
+    npm --prefix "${_drupal_core}" install
+  fi
 fi
 
 if [ -d "${_drupal_core_olivero}/css.orig/" ]; then
@@ -70,8 +85,11 @@ fi
 cp -r "${_drupal_core_olivero}/css/" "${_drupal_core_olivero}/css.orig/"
 cp -f "${_my_sub_theme_path}/css/variables.pcss.css" "${_drupal_core_olivero}/css/base/variables.pcss.css"
 
-# Build the theme
-cd "${_drupal_core}" && npm run build:css
+cmd="node ${_drupal_core}/scripts/css/postcss-build.js"
+while IFS= read -r file; do
+  cmd+=" --file $file"
+done < <(find ${_drupal_core_olivero}/css -type f -name '*.pcss.css')
+eval $cmd >/dev/null 2>&1
 
 # Copy the result of build.
 mv "${_my_sub_theme_path}/css/theme.css" "${_my_sub_theme_path}/theme.css"
@@ -89,4 +107,4 @@ rm -f "${_my_sub_theme_path}/css/**/*.pcss.css"
 rm -rf "${_drupal_core_olivero}/css/"
 mv "${_drupal_core_olivero}/css.orig/" "${_drupal_core_olivero}/css/"
 
-echo -e "${__grn}[Success]\e[0m Olivero Sub theme built!"
+echo -e "${__grn}[Success]\e[0m Olivero Sub theme ${_my_sub_theme} built successfully!"

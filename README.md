@@ -1,13 +1,16 @@
 # Drupal 10 Olivero sub theme
 
+__Note__: This will be obsolete with Drupal 11.x, see
+[Allow starterkit theme generator tool to clone Olivero](https://www.drupal.org/project/drupal/issues/3301173)
+
 Minimal template to create a sub theme from [Drupal Olivero theme](https://www.drupal.org/project/olivero).
 
-This is only recommended if you want to make minor tweaks and understand that Olivero could break your modifications as
-it changes.
+This is only recommended if you want to make **minor tweaks** and understand that Olivero could break your
+modifications as it changes.
 
 See full article:
 
-* <https://developpeur-drupal.com/en/article/update-creer-theme-drupal-10-olivero>
+* <https://developpeur-drupal.com/en/article/update-create-drupal-10-olivero-sub-theme>
 
 ## Quick HowTo
 
@@ -23,7 +26,7 @@ name `olivero_sub_theme` with your name.
 Run:
 
 ```bash
-scripts/build.sh _MY_THEME_NAME_
+scripts/build.sh
 ```
 
 Enable the theme as usual from your Drupal.
@@ -37,5 +40,5 @@ Adapt [css/theme.css](./css/theme.css) and [js/theme.js](./js/theme.js).
 Build the css with postcss by running each time:
 
 ```bash
-scripts/build.sh _MY_THEME_NAME_
+scripts/build.sh
 ```
