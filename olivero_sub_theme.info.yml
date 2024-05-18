@@ -4,7 +4,7 @@ base theme: olivero
 description: Olivero sub theme with minimal overrides, custom js and templates. # [Optional] Edit me
 alt text: Screenshot of Olivero sub theme. # Edit me
 package: Custom
-core_version_requirement: ^9 || ^10
+core_version_requirement: ^10
 libraries:
   - olivero_sub_theme/global-styling # Edit me
 
