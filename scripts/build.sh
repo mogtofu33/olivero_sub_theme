@@ -20,19 +20,41 @@ get_abs_path() {
   echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 }
 
+find_up () {
+  path="$1"
+  while [[ "$path" != "" && ! -e "$path/$2" ]]; do
+    path=${path%/*}
+  done
+  echo "$path"
+}
+
 _DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+_web_root="web"
+_drupal_root="$(find_up "$_DIR" "web")"
+if [ -z "${_drupal_root}" ]; then
+  _drupal_root="$(find_up "$_DIR" "docroot")"
+  _web_root="docroot"
+  if [ -z "${_drupal_root}" ]; then
+    echo -e "${__red}[ERROR]\e[0m Can not find Drupal root, do you have 'web' or 'docroot'?"
+    exit 1
+  fi
+fi
 
 _my_sub_theme="$(basename $(dirname "$_DIR"))"
 
-_drupal_core="web/core"
-_drupal_core_olivero="web/core/themes/olivero"
-_my_sub_theme_path="web/themes/custom/${_my_sub_theme}"
+_drupal_core="${_drupal_root}/${_web_root}/core"
+_drupal_core_olivero="${_drupal_root}/${_web_root}/core/themes/olivero"
+_my_sub_theme_path="${_drupal_root}/${_web_root}/themes/custom/${_my_sub_theme}"
 
 _error=0
 
 if [ ! -d "${_drupal_core}" ]; then
   _drupal_core="$_DIR/../../../../../${_drupal_core}"
-  [ ! -d "${_drupal_core}" ] && echo -e "${__red}[ERROR]\e[0m Drupal core missing: '$(get_abs_path "$_drupal_core")'!" && _error=1
+  if [ ! -d "${_drupal_core}" ]; then
+    _drupal_core="$_DIR/../../../../${_drupal_core}"
+    [ ! -d "${_drupal_core}" ] && echo -e "${__red}[ERROR]\e[0m Drupal core missing: '$(get_abs_path "$_drupal_core")'!" && _error=1
+  fi
 fi
 
 if [ ! -d "${_drupal_core_olivero}" ]; then
@@ -41,8 +63,10 @@ if [ ! -d "${_drupal_core_olivero}" ]; then
 fi
 
 if [ ! -d "${_my_sub_theme_path}" ]; then
-  _my_sub_theme_path="$_DIR/../../../../themes/custom/${_my_sub_theme}"
-  [ ! -d "${_my_sub_theme_path}" ] && echo -e "${__red}[ERROR]\e[0m Sub theme missing, did you create/copy this subtheme in '$(get_abs_path "$_my_sub_theme_path")'?" && _error=1
+  _my_sub_theme_path="${_drupal_root}/${_web_root}/themes/${_my_sub_theme}"
+  if [ ! -d "${_my_sub_theme_path}" ]; then
+    [ ! -d "${_my_sub_theme_path}" ] && echo -e "${__red}[ERROR]\e[0m Sub theme missing, did you create/copy this subtheme in '$(get_abs_path "$_my_sub_theme_path")'?" && _error=1
+  fi
 fi
 
 if ! command -v node >/dev/null 2>&1; then
